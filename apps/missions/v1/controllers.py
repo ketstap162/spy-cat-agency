@@ -34,17 +34,17 @@ async def create_mission(
         form: schemas.MissionForm,
         session: Session = Deps.get_session()
 ):
-    query = SpyCat.get(id=form.assigned_to)
-
     async with session.async_() as db:
-        result = await db.execute(query)
-        cat = result.scalars().one_or_none()
+        if form.assigned_to:
+            query = SpyCat.get(id=form.assigned_to)
+            result = await db.execute(query)
+            cat = result.scalars().one_or_none()
 
-        if not cat:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Cat with id={form.assigned_to} not found."
-            )
+            if not cat:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Cat with id={form.assigned_to} not found."
+                )
 
         target = app_models.Target(
             name=form.target.name,

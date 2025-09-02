@@ -37,7 +37,7 @@ class TargetDetail(ConfiguredModel):
 
 class MissionForm(BaseModel):
     target: TargetForm
-    assigned_to: int
+    assigned_to: Optional[int] = None
     is_completed: Optional[bool] = False
 
 

@@ -2,10 +2,19 @@ import multiprocessing
 
 import uvicorn
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+
 from api.core.settings import settings
 from api.routes import main_router
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(main_router)
 

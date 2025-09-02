@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from sqlalchemy.orm import selectinload
 from starlette import status
 
 from api.core.dependencies import Deps
@@ -8,6 +9,11 @@ from . import schemas
 from .utils.breeds import get_cat_breeds
 
 router = APIRouter()
+
+
+@router.get("/options/breeds")
+async def get_breed_options() -> list[str]:
+    return await get_cat_breeds()
 
 
 @router.get("/")
@@ -114,7 +120,9 @@ async def delete_cat(
         cat_id: int,
         session: Session = Deps.get_session()
 ):
-    query = SpyCat.get(id=cat_id)
+    query = SpyCat.get(id=cat_id).options(
+        selectinload(SpyCat.missions)
+    )
 
     async with session.async_() as db:
         result = await db.execute(query)
@@ -124,6 +132,12 @@ async def delete_cat(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Cat with id={cat_id} not found."
+            )
+
+        if cat.missions:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cat with id={cat_id} has mission(s) and can't be deleted."
             )
 
         await db.delete(cat)
